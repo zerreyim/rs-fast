@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RankStore · LookBook v3 — CTA position comparison</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root { color-scheme: light; }
+    html, body { margin: 0; padding: 0; background: #F5F4F0; }
+    body { font-family: "Inter", system-ui, sans-serif; }
+
+    .display { font-family: "Playfair Display", Georgia, serif; }
+    .mono { font-family: "JetBrains Mono", monospace; }
+
+    .container {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: clamp(48px, 6vw, 96px) clamp(20px, 4vw, 64px);
+    }
+
+    .label-band {
+      margin: 96px 0 24px;
+      padding: 16px 24px;
+      background: #1A1917;
+      color: #F5F4F0;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+    }
+    .label-band .opt { font-weight: 500; }
+    .label-band .desc { opacity: 0.7; font-size: 10px; letter-spacing: 0.06em; text-transform: none; }
+
+    .reference-band {
+      background: rgba(245,244,240,0.5);
+      border: 0.5px solid #D3D1C7;
+      padding: 32px;
+      margin-bottom: 32px;
+    }
+
+    /* Intro plate styles */
+    .intro-grid {
+      display: grid;
+      grid-template-columns: 5fr 7fr;
+      gap: 24px;
+      align-items: stretch;
+    }
+    .intro-left {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 24px 0;
+    }
+    .edit-tag { display: flex; align-items: center; gap: 12px; color: #6B6862; font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; }
+    .edit-tag .line { width: 24px; height: 1px; background: #D3D1C7; }
+    .heading { font-family: "Playfair Display", Georgia, serif; font-weight: 400; font-size: clamp(48px, 5vw, 84px); line-height: 0.92; color: #1A1917; letter-spacing: -0.02em; margin-top: auto; margin-bottom: 24px; }
+    .heading .italic { font-style: italic; display: inline-block; padding-left: 10%; }
+    .body-block { padding-left: calc(10% + 16px); border-left: 1px solid #D3D1C7; margin-left: 10%; max-width: 360px; display: flex; flex-direction: column; gap: 20px; }
+    .body-text { font-family: "Inter", sans-serif; font-weight: 400; font-size: 14px; line-height: 1.65; color: #3D3A35; letter-spacing: -0.005em; margin: 0; }
+    .soft-cta { font-family: "Inter", sans-serif; font-size: 13px; font-weight: 500; color: #1A1917; letter-spacing: 0.02em; padding-bottom: 4px; border-bottom: 0.5px solid #1A1917; align-self: start; text-decoration: none; display: inline-flex; gap: 8px; }
+    .intro-right-fake { background: radial-gradient(ellipse 80% 60% at 38% 28%, #C9BAA0 0%, #95876F 30%, #5A5045 62%, #2A2520 100%); aspect-ratio: 7/8; min-height: 320px; display: flex; align-items: end; justify-content: end; padding: 16px; }
+    .pl-counter { color: rgba(245,244,240,0.78); font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+    .pl-counter .line { width: 18px; height: 1px; background: rgba(245,244,240,0.4); }
+
+    /* Plate 7 cinematic */
+    .plate-7 { background: radial-gradient(ellipse 60% 80% at 50% 45%, #C2B6A2 0%, #8C8170 38%, #4D4538 78%, #1B1612 100%); aspect-ratio: 3/1; width: 100%; display: flex; align-items: end; justify-content: end; padding: 16px; margin-bottom: 16px; }
+    .caption { font-family: "Inter", sans-serif; font-size: 13px; line-height: 1.55; color: #3D3A35; padding-left: 16px; border-left: 1px solid #D3D1C7; margin-bottom: 32px; }
+
+    /* Footer variants */
+    .footer-min {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      gap: 16px;
+      padding-top: 16px;
+      border-top: 0.5px solid #D3D1C7;
+    }
+    .footer-min .left { font-family: "JetBrains Mono", monospace; font-size: 10px; color: #6B6862; letter-spacing: 0.14em; text-transform: uppercase; }
+    .footer-min .right { justify-self: end; font-family: "JetBrains Mono", monospace; font-size: 10px; color: #1A1917; letter-spacing: 0.14em; text-transform: uppercase; padding-bottom: 3px; border-bottom: 0.5px solid #1A1917; text-decoration: none; display: inline-flex; gap: 8px; }
+
+    .big-cta-band {
+      padding: 48px 0;
+      border-top: 0.5px solid #D3D1C7;
+      border-bottom: 0.5px solid #D3D1C7;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .big-cta {
+      font-family: "Playfair Display", Georgia, serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: clamp(28px, 3.5vw, 44px);
+      letter-spacing: -0.01em;
+      color: #1A1917;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #1A1917;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: baseline;
+      gap: 16px;
+    }
+    .big-cta .arrow { font-family: "Inter", sans-serif; font-style: normal; font-size: 28px; }
+
+    .intro-c-no-cta .body-block .soft-cta { display: none; }
+    .intro-c-no-cta .body-block { gap: 0; }
+
+    .small-note { font-family: "JetBrains Mono", monospace; font-size: 10px; color: #6B6862; letter-spacing: 0.06em; margin-top: 8px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Top reference: intro plate as it stands today -->
+  <div class="label-band">
+    <span class="opt">REFERENCE</span>
+    <span class="desc">— Editorial intro plate (current v3) for context. Below: footer-zone comparison.</span>
+  </div>
+
+  <div class="reference-band">
+    <div class="intro-grid">
+      <div class="intro-left">
+        <div class="edit-tag">
+          <span class="line"></span>
+          <span>The Edit</span>
+        </div>
+        <h2 class="heading">
+          Quiet<br>
+          <span class="italic">Hours</span>
+        </h2>
+        <div class="body-block">
+          <p class="body-text">Twelve frames from a Skåne winter — pieces in their lived hours, photographed in the slow light after rain.</p>
+          <a href="#" class="soft-cta">
+            <span>Shop the edit</span>
+            <span>→</span>
+          </a>
+        </div>
+      </div>
+      <div class="intro-right-fake">
+        <span class="pl-counter"><span class="line"></span>Pl. 01 / 07</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- OPTION A: current — intro CTA only, footer minimal -->
+  <div class="label-band">
+    <span class="opt">OPTION A</span>
+    <span class="desc">intro-only soft CTA · footer minimal · current v3 · most editorial / restrained</span>
+  </div>
+  <div class="plate-7">
+    <span class="pl-counter"><span class="line"></span>Pl. 07 / 07</span>
+  </div>
+  <p class="caption">Glass on tray — closing the edition.</p>
+  <div class="footer-min">
+    <span class="left">12 pieces · Limited run · Skåne</span>
+    <a href="#" class="right"><span>View all editions</span><span>→</span></a>
+  </div>
+
+  <!-- OPTION B: double anchor — intro CTA + big footer CTA -->
+  <div class="label-band">
+    <span class="opt">OPTION B</span>
+    <span class="desc">intro CTA + big italic anchor in footer · double anchor · most commerce-aware</span>
+  </div>
+  <div class="plate-7">
+    <span class="pl-counter"><span class="line"></span>Pl. 07 / 07</span>
+  </div>
+  <p class="caption">Glass on tray — closing the edition.</p>
+  <div class="big-cta-band">
+    <a href="#" class="big-cta">
+      <span>Shop all 7 pieces</span>
+      <span class="arrow">→</span>
+    </a>
+  </div>
+  <div class="footer-min" style="border-top: none; padding-top: 24px;">
+    <span class="left">12 pieces · Limited run · Skåne</span>
+    <a href="#" class="right"><span>View all editions</span><span>→</span></a>
+  </div>
+
+  <!-- OPTION C: single anchor — intro CTA removed, big footer CTA -->
+  <div class="label-band">
+    <span class="opt">OPTION C</span>
+    <span class="desc">single anchor moved to footer · intro CTA removed · most magazine-disciplined (one CTA per spread)</span>
+  </div>
+
+  <!-- Re-show intro plate WITHOUT the CTA -->
+  <div class="reference-band intro-c-no-cta">
+    <div class="intro-grid">
+      <div class="intro-left">
+        <div class="edit-tag">
+          <span class="line"></span>
+          <span>The Edit</span>
+        </div>
+        <h2 class="heading">
+          Quiet<br>
+          <span class="italic">Hours</span>
+        </h2>
+        <div class="body-block">
+          <p class="body-text">Twelve frames from a Skåne winter — pieces in their lived hours, photographed in the slow light after rain.</p>
+        </div>
+      </div>
+      <div class="intro-right-fake">
+        <span class="pl-counter"><span class="line"></span>Pl. 01 / 07</span>
+      </div>
+    </div>
+    <p class="small-note">↑ Intro plate without "Shop the edit" CTA — anchor moved entirely to footer below.</p>
+  </div>
+
+  <div class="plate-7">
+    <span class="pl-counter"><span class="line"></span>Pl. 07 / 07</span>
+  </div>
+  <p class="caption">Glass on tray — closing the edition.</p>
+  <div class="big-cta-band">
+    <a href="#" class="big-cta">
+      <span>Shop all 7 pieces</span>
+      <span class="arrow">→</span>
+    </a>
+  </div>
+  <div class="footer-min" style="border-top: none; padding-top: 24px;">
+    <span class="left">12 pieces · Limited run · Skåne</span>
+    <a href="#" class="right"><span>View all editions</span><span>→</span></a>
+  </div>
+
+</div>
+
+</body>
+</html>
