@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RankStore · LookBook v2 preview (3 rhythms)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    :root { color-scheme: light; }
+    html, body { margin: 0; padding: 0; background: #F5F4F0; }
+    body { font-family: "Inter", system-ui, sans-serif; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel" data-presets="react">
+    const { useState, useEffect } = React;
+
+
+// RankStore — Inspire / LookBook — v2
+// Three grid rhythms side-by-side via top-right toggle:
+//   • Editorial   — asymmetric 12-col, intro plate as type plate, magazine spread
+//   • Catalog     — uniform 3-col portrait grid, split header (heading | body)
+//   • Single Lane — sequential full-width cinematic, centered header
+//
+// Plate data (gradient, caption, hot-spots) is constant across rhythms.
+// Only the grid/aspect mapping and header style change.
+// Hot-spot pattern + drawer + masthead + meta strip are shared.
+
+const fontStack = {
+  display: '"Playfair Display", "Libre Caslon Display", Georgia, serif',
+  body: '"Geist", "Switzer", "DM Sans", system-ui, sans-serif',
+  mono: '"JetBrains Mono", "Geist Mono", ui-monospace, monospace',
+};
+
+const theme = {
+  sectionBg: '#F5F4F0',
+  surfaceBg: '#EEEDEA',
+  ink: '#1A1917',
+  inkMute: '#3D3A35',
+  inkFaint: '#6B6862',
+  hairline: '#D3D1C7',
+  hairlineSoft: '#E8E5DD',
+  cream: '#F5F4F0',
+  creamMute: 'rgba(245,244,240,0.78)',
+  creamFaint: 'rgba(245,244,240,0.55)',
+  creamHairline: 'rgba(245,244,240,0.4)',
+  buttonBg: '#1A1917',
+  buttonBgHover: '#2D2823',
+  buttonInk: '#F5F4F0',
+};
+
+const grainSvg =
+  "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.1 0 0 0 0 0.09 0 0 0 0 0.08 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E\")";
+
+const masthead = {
+  edition: 'Lookbook №07',
+  issue: 'The Slow Light Issue',
+  season: 'Winter 2026',
+};
+
+const intro = {
+  line1: 'Quiet',
+  line2: 'Hours',
+  body: 'Twelve frames from a Skåne winter — pieces in their lived hours, photographed in the slow light after rain.',
+  cta: 'Shop the edit',
+};
+
+const meta = {
+  left: '12 pieces · Limited run · Skåne',
+  right: 'View all editions',
+};
+
+// ─── Plate data (constant across rhythms) ────────────────────────────
+const plates = [
+  {
+    id: 1,
+    no: 'Pl. 01 / 07',
+    caption: 'Living hours — a wool throw, a ceramic vase, the room before dusk.',
+    gradient:
+      'radial-gradient(ellipse 80% 60% at 38% 28%, #C9BAA0 0%, #95876F 30%, #5A5045 62%, #2A2520 100%)',
+    hotspots: [
+      { id: 'h1-1', x: 28, y: 64, side: 'right',
+        product: { name: 'Heavy Wool Throw', material: 'Lambswool · Skåne', price: '€380',
+          gradient: 'linear-gradient(135deg, #C9BAA0 0%, #5A5045 100%)' } },
+      { id: 'h1-2', x: 62, y: 36, side: 'left',
+        product: { name: 'Ceramic Vase, Tall', material: 'Stoneware · Höganäs', price: '€145',
+          gradient: 'linear-gradient(135deg, #D3C7B3 0%, #8B7F6B 100%)' } },
+      { id: 'h1-3', x: 74, y: 78, side: 'left',
+        product: { name: 'Carved Bowl Set', material: 'Oak · 3 sizes', price: '€95',
+          gradient: 'linear-gradient(135deg, #B09980 0%, #4F4538 100%)' } },
+    ],
+  },
+  {
+    id: 2,
+    no: 'Pl. 02 / 07',
+    caption: 'A morning kept warm.',
+    gradient:
+      'radial-gradient(ellipse 70% 55% at 55% 45%, #D8B89A 0%, #A88876 38%, #5C4D44 75%, #2A201C 100%)',
+    hotspots: [
+      { id: 'h2-1', x: 48, y: 58, side: 'right',
+        product: { name: 'Stoneware Mug, Pair', material: 'Hand-thrown · 320ml', price: '€58',
+          gradient: 'linear-gradient(135deg, #C9A78C 0%, #6B5648 100%)' } },
+    ],
+  },
+  {
+    id: 3,
+    no: 'Pl. 03 / 07',
+    caption: 'Detail — the curve before the lip.',
+    gradient:
+      'radial-gradient(ellipse 70% 65% at 50% 40%, #BEB4A4 0%, #88806F 38%, #4D463C 78%, #1F1A14 100%)',
+    hotspots: [
+      { id: 'h3-1', x: 50, y: 52, side: 'right',
+        product: { name: 'Tall Vase, Cream', material: 'Stoneware · 32cm', price: '€145',
+          gradient: 'linear-gradient(135deg, #D3C7B3 0%, #6B6049 100%)' } },
+    ],
+  },
+  {
+    id: 4,
+    no: 'Pl. 04 / 07',
+    caption: 'Oak grain, three sizes.',
+    gradient:
+      'radial-gradient(ellipse 75% 60% at 45% 50%, #C0A887 0%, #8B7558 38%, #4E412F 75%, #1F1812 100%)',
+    hotspots: [
+      { id: 'h4-1', x: 50, y: 56, side: 'right',
+        product: { name: 'Carved Bowl Set', material: 'Oak · 3 sizes', price: '€95',
+          gradient: 'linear-gradient(135deg, #B09980 0%, #4F4538 100%)' } },
+    ],
+  },
+  {
+    id: 5,
+    no: 'Pl. 05 / 07',
+    caption: 'Bedroom corner — linen, candle, the last light.',
+    gradient:
+      'radial-gradient(ellipse 70% 60% at 40% 35%, #B4A89A 0%, #7B7264 35%, #443D34 72%, #1A1612 100%)',
+    hotspots: [
+      { id: 'h5-1', x: 32, y: 50, side: 'right',
+        product: { name: 'Cotton Cushion, Stone', material: 'Heavy linen · 50×50', price: '€68',
+          gradient: 'linear-gradient(135deg, #B7AA98 0%, #5A4F44 100%)' } },
+      { id: 'h5-2', x: 70, y: 64, side: 'left',
+        product: { name: 'Brass Candle Holder', material: 'Cast brass · 18cm', price: '€120',
+          gradient: 'linear-gradient(135deg, #C8A878 0%, #6B5530 100%)' } },
+    ],
+  },
+  {
+    id: 6,
+    no: 'Pl. 06 / 07',
+    caption: 'Quiet — no objects, only light.',
+    atmosphericOnly: true,
+    gradient:
+      'radial-gradient(ellipse 90% 85% at 50% 30%, #EEE6D2 0%, #D9CDB1 35%, #B4A589 65%, #7C6F58 100%)',
+    hotspots: [],
+  },
+  {
+    id: 7,
+    no: 'Pl. 07 / 07',
+    caption: 'Glass on tray — closing the edition.',
+    gradient:
+      'radial-gradient(ellipse 60% 80% at 50% 45%, #C2B6A2 0%, #8C8170 38%, #4D4538 78%, #1B1612 100%)',
+    hotspots: [
+      { id: 'h7-1', x: 48, y: 55, side: 'right',
+        product: { name: 'Glass Carafe', material: 'Mouth-blown · 1L', price: '€88',
+          gradient: 'linear-gradient(135deg, #D8CFB8 0%, #6B6149 100%)' } },
+    ],
+  },
+];
+
+// ─── Rhythm configs ──────────────────────────────────────────────────
+// Each rhythm maps plate.id → { grid, aspect } and decides header style.
+const rhythmConfigs = {
+  editorial: {
+    label: 'Editorial',
+    note: 'asymmetric 12-col · magazine spread',
+    introPlate: true,
+    header: null,
+    layout: {
+      1: { grid: 'lg:col-span-7 lg:row-span-2', aspect: '7 / 8' },
+      2: { grid: 'lg:col-span-7', aspect: '7 / 4' },
+      3: { grid: 'lg:col-span-5', aspect: '5 / 4' },
+      4: { grid: 'lg:col-span-4', aspect: '4 / 5' },
+      5: { grid: 'lg:col-span-5', aspect: '1 / 1' },
+      6: { grid: 'lg:col-span-3', aspect: '3 / 5' },
+      7: { grid: 'lg:col-span-12', aspect: '3 / 1' },
+    },
+  },
+  catalog: {
+    label: 'Catalog',
+    note: 'uniform 3-col · portrait',
+    introPlate: false,
+    header: 'split',
+    layout: Object.fromEntries(
+      plates.map((p) => [p.id, { grid: 'lg:col-span-4', aspect: '4 / 5' }])
+    ),
+  },
+  single: {
+    label: 'Single Lane',
+    note: 'sequential full-width · cinematic',
+    introPlate: false,
+    header: 'centered',
+    layout: Object.fromEntries(
+      plates.map((p) => [p.id, { grid: 'lg:col-span-12', aspect: '16 / 9' }])
+    ),
+  },
+};
+
+// ─── Rhythm toggle (developer panel — fixed top-right) ────────────────
+function RhythmToggle({ current, onChange }) {
+  return (
+    <div
+      className="fixed flex flex-col gap-2"
+      style={{
+        top: 16,
+        right: 16,
+        zIndex: 60,
+        background: theme.sectionBg,
+        border: `1px solid ${theme.hairline}`,
+        padding: '12px 14px',
+        boxShadow: '0 8px 24px rgba(20,18,16,0.06)',
+      }}
+    >
+      <div
+        className="flex items-center gap-2"
+        style={{
+          fontFamily: fontStack.mono,
+          fontSize: 9,
+          color: theme.inkFaint,
+          letterSpacing: '0.18em',
+          textTransform: 'uppercase',
+        }}
+      >
+        <span style={{ width: 14, height: 1, background: theme.hairline }} />
+        <span>Rhythm</span>
+      </div>
+      <div className="flex flex-col gap-1">
+        {Object.entries(rhythmConfigs).map(([key, cfg]) => {
+          const active = current === key;
+          return (
+            <button
+              key={key}
+              onClick={() => onChange(key)}
+              className="flex flex-col items-start text-left transition-all"
+              style={{
+                padding: '6px 10px',
+                background: active ? theme.ink : 'transparent',
+                color: active ? theme.cream : theme.ink,
+                border: `0.5px solid ${active ? theme.ink : theme.hairlineSoft}`,
+                fontFamily: fontStack.mono,
+                fontSize: 11,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                minWidth: 180,
+              }}
+            >
+              <span style={{ fontWeight: 500 }}>{cfg.label}</span>
+              <span
+                style={{
+                  fontSize: 9,
+                  opacity: active ? 0.6 : 0.5,
+                  letterSpacing: '0.06em',
+                  textTransform: 'none',
+                  marginTop: 2,
+                }}
+              >
+                {cfg.note}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── HotSpot (shared) ────────────────────────────────────────────────
+function HotSpot({ x, y, side, product, isHovered, onHover, onLeave, onSelect }) {
+  const peekDirection = side === 'right' ? 'left-full ml-3' : 'right-full mr-3';
+  return (
+    <div
+      className="absolute -translate-x-1/2 -translate-y-1/2"
+      style={{ left: `${x}%`, top: `${y}%` }}
+      onMouseEnter={onHover}
+      onMouseLeave={onLeave}
+    >
+      <button
+        onClick={onSelect}
+        aria-label={`Open product: ${product.name}, ${product.price}`}
+        className="relative grid place-items-center transition-all duration-300 ease-out"
+        style={{
+          width: isHovered ? 28 : 20,
+          height: isHovered ? 28 : 20,
+          background: 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+          padding: 0,
+        }}
+      >
+        <span
+          className="absolute inset-0 rounded-full transition-all duration-300 ease-out"
+          style={{
+            border: `1px solid ${theme.creamHairline}`,
+            background: isHovered ? 'rgba(245,244,240,0.16)' : 'rgba(245,244,240,0.08)',
+            backdropFilter: 'blur(2px)',
+          }}
+        />
+        <span
+          className="relative rounded-full"
+          style={{
+            width: 4,
+            height: 4,
+            background: theme.cream,
+            boxShadow: '0 0 8px rgba(245,244,240,0.5)',
+          }}
+        />
+        <span
+          className="absolute rounded-full pointer-events-none"
+          style={{
+            inset: -6,
+            border: '1px solid rgba(245,244,240,0.18)',
+            opacity: isHovered ? 1 : 0,
+            transform: isHovered ? 'scale(1.1)' : 'scale(0.85)',
+            transition: 'all 400ms ease-out',
+          }}
+        />
+      </button>
+      <div
+        className={`absolute top-1/2 -translate-y-1/2 ${peekDirection} pointer-events-none`}
+        style={{
+          opacity: isHovered ? 1 : 0,
+          transform: `translateY(-50%) translateX(${
+            isHovered ? 0 : side === 'right' ? -6 : 6
+          }px)`,
+          transition: 'all 300ms ease-out',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        <div
+          className="px-3 py-2"
+          style={{
+            background: 'rgba(20,18,16,0.78)',
+            backdropFilter: 'blur(8px)',
+            border: `1px solid ${theme.creamHairline}`,
+            color: theme.cream,
+            fontFamily: fontStack.mono,
+            fontSize: 10,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+          }}
+        >
+          <span style={{ opacity: 0.7 }}>{product.material}</span>
+          <span className="mx-2" style={{ opacity: 0.4 }}>·</span>
+          <span>{product.price}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Plate (shared) ──────────────────────────────────────────────────
+function Plate({ plate, grid, aspect, hoveredHotspot, setHoveredHotspot, onSelectProduct }) {
+  return (
+    <article className={`${grid} group flex flex-col gap-4`}>
+      <div
+        className="relative w-full overflow-hidden"
+        style={{ background: plate.gradient, aspectRatio: aspect }}
+      >
+        <div
+          className="absolute inset-0 mix-blend-overlay pointer-events-none"
+          style={{ backgroundImage: grainSvg, opacity: 0.45 }}
+        />
+        <div
+          className="absolute inset-x-0 bottom-0 pointer-events-none"
+          style={{
+            height: '40%',
+            background:
+              'linear-gradient(to bottom, transparent 0%, rgba(20,18,16,0.32) 100%)',
+          }}
+        />
+        <div
+          className="absolute bottom-3 right-3 flex items-center gap-2 pointer-events-none"
+          style={{
+            color: theme.creamMute,
+            fontFamily: fontStack.mono,
+            fontSize: 10,
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+          }}
+        >
+          <span style={{ width: 18, height: 1, background: theme.creamHairline }} />
+          <span>{plate.no}</span>
+        </div>
+        {plate.hotspots.map((h) => (
+          <HotSpot
+            key={h.id}
+            {...h}
+            isHovered={hoveredHotspot === h.id}
+            onHover={() => setHoveredHotspot(h.id)}
+            onLeave={() => setHoveredHotspot(null)}
+            onSelect={() => onSelectProduct(h.product)}
+          />
+        ))}
+        {plate.atmosphericOnly && (
+          <div
+            className="absolute bottom-3 left-3"
+            style={{
+              color: theme.creamFaint,
+              fontFamily: fontStack.mono,
+              fontSize: 9,
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+            }}
+          >
+            Atmosphere
+          </div>
+        )}
+      </div>
+      <div className="pl-4" style={{ borderLeft: `1px solid ${theme.hairline}` }}>
+        <p
+          style={{
+            fontFamily: fontStack.body,
+            fontSize: 13,
+            lineHeight: 1.55,
+            color: theme.inkMute,
+            letterSpacing: '-0.005em',
+          }}
+        >
+          {plate.caption}
+        </p>
+      </div>
+    </article>
+  );
+}
+
+// ─── Intro plate (Editorial only — type-led) ─────────────────────────
+function IntroPlate() {
+  return (
+    <article className="lg:col-span-5 lg:row-span-2 flex flex-col justify-between lg:py-6">
+      <div
+        className="flex items-center gap-3"
+        style={{
+          color: theme.inkFaint,
+          fontFamily: fontStack.mono,
+          fontSize: 10,
+          letterSpacing: '0.16em',
+          textTransform: 'uppercase',
+        }}
+      >
+        <span style={{ width: 24, height: 1, background: theme.hairline }} />
+        <span>The Edit</span>
+      </div>
+      <div className="flex flex-col" style={{ marginTop: 'auto', marginBottom: 24 }}>
+        <h2
+          style={{
+            fontFamily: fontStack.display,
+            fontWeight: 400,
+            fontSize: 'clamp(64px, 7vw, 112px)',
+            lineHeight: 0.92,
+            color: theme.ink,
+            letterSpacing: '-0.02em',
+          }}
+        >
+          <span>{intro.line1}</span>
+          <br />
+          <span style={{ fontStyle: 'italic', display: 'inline-block', paddingLeft: '10%' }}>
+            {intro.line2}
+          </span>
+        </h2>
+      </div>
+      <div
+        className="flex flex-col gap-5"
+        style={{
+          paddingLeft: 'calc(10% + 16px)',
+          borderLeft: `1px solid ${theme.hairline}`,
+          marginLeft: '10%',
+          maxWidth: 360,
+        }}
+      >
+        <p
+          style={{
+            fontFamily: fontStack.display,
+            fontStyle: 'italic',
+            fontWeight: 400,
+            fontSize: 16,
+            lineHeight: 1.55,
+            color: theme.inkMute,
+            letterSpacing: '0.005em',
+          }}
+        >
+          {intro.body}
+        </p>
+        <a
+          href="#"
+          className="group inline-flex items-center gap-2 self-start"
+          style={{
+            fontFamily: fontStack.body,
+            fontSize: 13,
+            fontWeight: 500,
+            color: theme.ink,
+            letterSpacing: '0.02em',
+            paddingBottom: 4,
+            borderBottom: `0.5px solid ${theme.ink}`,
+          }}
+        >
+          <span>{intro.cta}</span>
+          <span
+            className="transition-transform duration-200 ease-out group-hover:translate-x-2"
+            style={{ display: 'inline-block' }}
+          >
+            →
+          </span>
+        </a>
+      </div>
+    </article>
+  );
+}
+
+// ─── Header — Split (Catalog) ────────────────────────────────────────
+function HeaderSplit() {
+  return (
+    <div
+      className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-end"
+      style={{
+        marginTop: 'clamp(32px, 4vw, 56px)',
+        marginBottom: 'clamp(32px, 4vw, 56px)',
+        paddingBottom: 24,
+        borderBottom: `0.5px solid ${theme.hairline}`,
+      }}
+    >
+      <div className="lg:col-span-7 flex flex-col gap-4">
+        <div
+          className="flex items-center gap-3"
+          style={{
+            color: theme.inkFaint,
+            fontFamily: fontStack.mono,
+            fontSize: 10,
+            letterSpacing: '0.16em',
+            textTransform: 'uppercase',
+          }}
+        >
+          <span style={{ width: 24, height: 1, background: theme.hairline }} />
+          <span>The Edit</span>
+        </div>
+        <h2
+          style={{
+            fontFamily: fontStack.display,
+            fontWeight: 400,
+            fontSize: 'clamp(56px, 6vw, 96px)',
+            lineHeight: 0.95,
+            color: theme.ink,
+            letterSpacing: '-0.02em',
+          }}
+        >
+          <span>{intro.line1} </span>
+          <span style={{ fontStyle: 'italic' }}>{intro.line2}</span>
+        </h2>
+      </div>
+      <div
+        className="lg:col-span-5 flex flex-col gap-5 pl-4"
+        style={{ borderLeft: `1px solid ${theme.hairline}`, maxWidth: 420 }}
+      >
+        <p
+          style={{
+            fontFamily: fontStack.display,
+            fontStyle: 'italic',
+            fontWeight: 400,
+            fontSize: 16,
+            lineHeight: 1.55,
+            color: theme.inkMute,
+            letterSpacing: '0.005em',
+          }}
+        >
+          {intro.body}
+        </p>
+        <a
+          href="#"
+          className="group inline-flex items-center gap-2 self-start"
+          style={{
+            fontFamily: fontStack.body,
+            fontSize: 13,
+            fontWeight: 500,
+            color: theme.ink,
+            letterSpacing: '0.02em',
+            paddingBottom: 4,
+            borderBottom: `0.5px solid ${theme.ink}`,
+          }}
+        >
+          <span>{intro.cta}</span>
+          <span
+            className="transition-transform duration-200 ease-out group-hover:translate-x-2"
+            style={{ display: 'inline-block' }}
+          >
+            →
+          </span>
+        </a>
+      </div>
+    </div>
+  );
+}
+
+// ─── Header — Centered (Single Lane) ─────────────────────────────────
+function HeaderCentered() {
+  return (
+    <div
+      className="flex flex-col items-center text-center"
+      style={{
+        marginTop: 'clamp(48px, 6vw, 96px)',
+        marginBottom: 'clamp(48px, 6vw, 96px)',
+        gap: 32,
+      }}
+    >
+      <div
+        className="flex items-center gap-3"
+        style={{
+          color: theme.inkFaint,
+          fontFamily: fontStack.mono,
+          fontSize: 10,
+          letterSpacing: '0.18em',
+          textTransform: 'uppercase',
+        }}
+      >
+        <span style={{ width: 24, height: 1, background: theme.hairline }} />
+        <span>The Edit</span>
+        <span style={{ width: 24, height: 1, background: theme.hairline }} />
+      </div>
+      <h2
+        style={{
+          fontFamily: fontStack.display,
+          fontWeight: 400,
+          fontSize: 'clamp(72px, 9vw, 152px)',
+          lineHeight: 0.92,
+          color: theme.ink,
+          letterSpacing: '-0.025em',
+        }}
+      >
+        <span>{intro.line1} </span>
+        <span style={{ fontStyle: 'italic' }}>{intro.line2}</span>
+      </h2>
+      <p
+        style={{
+          fontFamily: fontStack.display,
+          fontStyle: 'italic',
+          fontWeight: 400,
+          fontSize: 18,
+          lineHeight: 1.6,
+          color: theme.inkMute,
+          letterSpacing: '0.005em',
+          maxWidth: 520,
+        }}
+      >
+        {intro.body}
+      </p>
+      <a
+        href="#"
+        className="group inline-flex items-center gap-2"
+        style={{
+          fontFamily: fontStack.body,
+          fontSize: 13,
+          fontWeight: 500,
+          color: theme.ink,
+          letterSpacing: '0.02em',
+          paddingBottom: 4,
+          borderBottom: `0.5px solid ${theme.ink}`,
+        }}
+      >
+        <span>{intro.cta}</span>
+        <span
+          className="transition-transform duration-200 ease-out group-hover:translate-x-2"
+          style={{ display: 'inline-block' }}
+        >
+          →
+        </span>
+      </a>
+    </div>
+  );
+}
+
+// ─── Drawer (shared) ─────────────────────────────────────────────────
+function Drawer({ product, onClose }) {
+  const [size, setSize] = useState(null);
+  const [qty, setQty] = useState(1);
+
+  useEffect(() => {
+    const onKey = (e) => e.key === 'Escape' && onClose();
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  if (!product) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex">
+      <button
+        aria-label="Close drawer"
+        onClick={onClose}
+        className="flex-1"
+        style={{
+          background: 'rgba(20,18,16,0.32)',
+          backdropFilter: 'blur(2px)',
+          border: 'none',
+          cursor: 'pointer',
+        }}
+      />
+      <aside
+        className="flex flex-col w-full h-full overflow-y-auto"
+        style={{
+          maxWidth: 440,
+          background: theme.sectionBg,
+          borderLeft: `1px solid ${theme.hairline}`,
+        }}
+      >
+        <div
+          className="flex items-center justify-between px-6 py-4"
+          style={{ borderBottom: `1px solid ${theme.hairlineSoft}` }}
+        >
+          <span
+            style={{
+              color: theme.inkFaint,
+              fontFamily: fontStack.mono,
+              fontSize: 10,
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+            }}
+          >
+            From the lookbook
+          </span>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="grid place-items-center w-8 h-8 transition-colors"
+            style={{
+              border: `1px solid ${theme.hairline}`,
+              color: theme.ink,
+              background: 'transparent',
+              cursor: 'pointer',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = theme.surfaceBg)}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M2 2L10 10M10 2L2 10" stroke="currentColor" strokeWidth="1" strokeLinecap="square" />
+            </svg>
+          </button>
+        </div>
+        <div
+          className="relative w-full overflow-hidden"
+          style={{ background: product.gradient, aspectRatio: '4 / 5' }}
+        >
+          <div
+            className="absolute inset-0 mix-blend-overlay pointer-events-none"
+            style={{ backgroundImage: grainSvg, opacity: 0.4 }}
+          />
+        </div>
+        <div className="flex-1 flex flex-col gap-6 px-6 py-6">
+          <div className="flex items-start justify-between gap-4">
+            <h3
+              style={{
+                fontFamily: fontStack.display,
+                fontStyle: 'italic',
+                fontWeight: 400,
+                fontSize: 28,
+                lineHeight: 1.1,
+                color: theme.ink,
+                letterSpacing: '-0.01em',
+              }}
+            >
+              {product.name}
+            </h3>
+            <span
+              style={{
+                fontFamily: fontStack.mono,
+                fontSize: 13,
+                color: theme.ink,
+                letterSpacing: '0.02em',
+                whiteSpace: 'nowrap',
+                paddingTop: 6,
+              }}
+            >
+              {product.price}
+            </span>
+          </div>
+          <p
+            style={{
+              fontFamily: fontStack.mono,
+              fontSize: 11,
+              color: theme.inkFaint,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+            }}
+          >
+            {product.material}
+          </p>
+          <div style={{ height: 1, background: theme.hairlineSoft }} />
+          <div className="flex flex-col gap-3">
+            <span
+              style={{
+                fontFamily: fontStack.mono,
+                fontSize: 10,
+                color: theme.inkFaint,
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+              }}
+            >
+              Size
+            </span>
+            <div className="flex gap-2">
+              {['S', 'M', 'L'].map((s) => {
+                const active = size === s;
+                return (
+                  <button
+                    key={s}
+                    onClick={() => setSize(s)}
+                    className="flex-1 py-3 transition-colors"
+                    style={{
+                      fontFamily: fontStack.body,
+                      fontSize: 13,
+                      fontWeight: 500,
+                      color: active ? theme.cream : theme.ink,
+                      background: active ? theme.ink : 'transparent',
+                      border: `1px solid ${active ? theme.ink : theme.hairline}`,
+                      letterSpacing: '0.02em',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {s}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <span
+              style={{
+                fontFamily: fontStack.mono,
+                fontSize: 10,
+                color: theme.inkFaint,
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+              }}
+            >
+              Quantity
+            </span>
+            <div className="flex items-center" style={{ border: `1px solid ${theme.hairline}` }}>
+              <button
+                onClick={() => setQty(Math.max(1, qty - 1))}
+                aria-label="Decrease"
+                className="w-9 h-9 grid place-items-center transition-colors"
+                onMouseEnter={(e) => (e.currentTarget.style.background = theme.surfaceBg)}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                style={{ color: theme.ink, background: 'transparent', border: 'none', cursor: 'pointer' }}
+              >
+                −
+              </button>
+              <span
+                className="w-9 text-center"
+                style={{
+                  fontFamily: fontStack.mono,
+                  fontSize: 13,
+                  color: theme.ink,
+                  borderLeft: `1px solid ${theme.hairline}`,
+                  borderRight: `1px solid ${theme.hairline}`,
+                  paddingTop: 8,
+                  paddingBottom: 8,
+                }}
+              >
+                {qty}
+              </span>
+              <button
+                onClick={() => setQty(qty + 1)}
+                aria-label="Increase"
+                className="w-9 h-9 grid place-items-center transition-colors"
+                onMouseEnter={(e) => (e.currentTarget.style.background = theme.surfaceBg)}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                style={{ color: theme.ink, background: 'transparent', border: 'none', cursor: 'pointer' }}
+              >
+                +
+              </button>
+            </div>
+          </div>
+          <div className="flex-1" />
+          <button
+            className="w-full py-4 transition-all duration-200"
+            style={{
+              fontFamily: fontStack.body,
+              fontSize: 14,
+              fontWeight: 500,
+              color: theme.buttonInk,
+              background: theme.buttonBg,
+              letterSpacing: '0.02em',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = theme.buttonBgHover)}
+            onMouseLeave={(e) => (e.currentTarget.style.background = theme.buttonBg)}
+            onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.98)')}
+            onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+          >
+            Add to bag — {product.price}
+          </button>
+          <a
+            href="#"
+            className="group self-center inline-flex items-center gap-2"
+            style={{
+              fontFamily: fontStack.body,
+              fontSize: 12,
+              color: theme.inkMute,
+              letterSpacing: '0.02em',
+              paddingBottom: 3,
+              borderBottom: `0.5px solid ${theme.inkMute}`,
+            }}
+          >
+            <span>View full product page</span>
+            <span
+              className="transition-transform duration-200 ease-out group-hover:translate-x-1"
+              style={{ display: 'inline-block' }}
+            >
+              →
+            </span>
+          </a>
+        </div>
+      </aside>
+    </div>
+  );
+}
+
+// ─── Main ────────────────────────────────────────────────────────────
+function LookBook() {
+  const [rhythm, setRhythm] = useState('editorial');
+  const [activeProduct, setActiveProduct] = useState(null);
+  const [hoveredHotspot, setHoveredHotspot] = useState(null);
+
+  const config = rhythmConfigs[rhythm];
+
+  // Different gap-y per rhythm for visual rhythm
+  const gridGapClass =
+    rhythm === 'single'
+      ? 'gap-x-6 gap-y-16 lg:gap-y-24'
+      : rhythm === 'catalog'
+      ? 'gap-x-6 gap-y-12 lg:gap-y-16'
+      : 'gap-x-6 gap-y-12 lg:gap-y-16';
+
+  return (
+    <section
+      style={{
+        background: theme.sectionBg,
+        fontFamily: fontStack.body,
+        minHeight: '100vh',
+      }}
+    >
+      <RhythmToggle current={rhythm} onChange={setRhythm} />
+
+      <div
+        className="mx-auto"
+        style={{
+          maxWidth: 1440,
+          padding: 'clamp(48px, 6vw, 96px) clamp(20px, 4vw, 64px)',
+        }}
+      >
+        {/* Masthead — shared across all rhythms */}
+        <header
+          className="grid grid-cols-3 items-center gap-4"
+          style={{ paddingBottom: 16, borderBottom: `0.5px solid ${theme.hairline}` }}
+        >
+          <span
+            style={{
+              fontFamily: fontStack.mono,
+              fontSize: 11,
+              color: theme.ink,
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+            }}
+          >
+            {masthead.edition}
+          </span>
+          <span
+            className="text-center"
+            style={{
+              fontFamily: fontStack.display,
+              fontStyle: 'italic',
+              fontWeight: 400,
+              fontSize: 'clamp(14px, 1.4vw, 18px)',
+              color: theme.ink,
+              letterSpacing: '-0.005em',
+            }}
+          >
+            {masthead.issue}
+          </span>
+          <span
+            className="text-right"
+            style={{
+              fontFamily: fontStack.mono,
+              fontSize: 11,
+              color: theme.ink,
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+            }}
+          >
+            {masthead.season}
+          </span>
+        </header>
+
+        {/* Header per rhythm */}
+        {config.header === 'split' && <HeaderSplit />}
+        {config.header === 'centered' && <HeaderCentered />}
+
+        {/* Plate grid */}
+        <div
+          className={`grid grid-cols-1 lg:grid-cols-12 ${gridGapClass}`}
+          style={{
+            marginTop: config.header ? 0 : 'clamp(32px, 4vw, 56px)',
+          }}
+        >
+          {config.introPlate && <IntroPlate />}
+          {plates.map((plate) => {
+            const layout = config.layout[plate.id];
+            return (
+              <Plate
+                key={plate.id}
+                plate={plate}
+                grid={layout.grid}
+                aspect={layout.aspect}
+                hoveredHotspot={hoveredHotspot}
+                setHoveredHotspot={setHoveredHotspot}
+                onSelectProduct={setActiveProduct}
+              />
+            );
+          })}
+        </div>
+
+        {/* Meta strip — shared */}
+        <footer
+          className="grid grid-cols-2 items-center gap-4"
+          style={{
+            marginTop: 'clamp(48px, 6vw, 96px)',
+            paddingTop: 16,
+            borderTop: `0.5px solid ${theme.hairline}`,
+          }}
+        >
+          <span
+            style={{
+              fontFamily: fontStack.mono,
+              fontSize: 10,
+              color: theme.inkFaint,
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+            }}
+          >
+            {meta.left}
+          </span>
+          <a
+            href="#"
+            className="group justify-self-end inline-flex items-center gap-2"
+            style={{
+              fontFamily: fontStack.mono,
+              fontSize: 10,
+              color: theme.ink,
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              paddingBottom: 3,
+              borderBottom: `0.5px solid ${theme.ink}`,
+            }}
+          >
+            <span>{meta.right}</span>
+            <span
+              className="transition-transform duration-200 ease-out group-hover:translate-x-1"
+              style={{ display: 'inline-block' }}
+            >
+              →
+            </span>
+          </a>
+        </footer>
+      </div>
+
+      <Drawer product={activeProduct} onClose={() => setActiveProduct(null)} />
+    </section>
+  );
+}
+
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<LookBook />);
+  </script>
+</body>
+</html>
