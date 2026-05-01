@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RankStore · LookBook v2 preview (3 rhythms)</title>
+  <title>RankStore · LookBook v3 preview (Editorial)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
@@ -25,15 +25,20 @@
     const { useState, useEffect } = React;
 
 
-// RankStore — Inspire / LookBook — v2
-// Three grid rhythms side-by-side via top-right toggle:
-//   • Editorial   — asymmetric 12-col, intro plate as type plate, magazine spread
-//   • Catalog     — uniform 3-col portrait grid, split header (heading | body)
-//   • Single Lane — sequential full-width cinematic, centered header
+
+// RankStore — Inspire / LookBook — v3
+// Editorial rhythm only (selected after v2 3-rhythm comparison).
+// Asymmetric 12-col magazine spread, type-led intro plate, 7 plates with varied aspects.
 //
-// Plate data (gradient, caption, hot-spots) is constant across rhythms.
-// Only the grid/aspect mapping and header style change.
-// Hot-spot pattern + drawer + masthead + meta strip are shared.
+// Tweaks from v2:
+//   • Intro plate body: Display-italic → Geist (sans) for less decorative weight
+//   • Hot-spot ring contrast: brighter border + larger inner dot for dark gradients
+//
+// Inherited Editorial Cover patterns:
+//   • Magazine masthead (Edition | Issue italic | Season)
+//   • Caption hairline anchor (border-left on plate captions)
+//   • Selective italic heading (Quiet → italic Hours, 10% indent)
+//   • Soft CTA discipline (underlined text, no buttons in section body)
 
 const fontStack = {
   display: '"Playfair Display", "Libre Caslon Display", Georgia, serif',
@@ -173,112 +178,6 @@ const plates = [
   },
 ];
 
-// ─── Rhythm configs ──────────────────────────────────────────────────
-// Each rhythm maps plate.id → { grid, aspect } and decides header style.
-const rhythmConfigs = {
-  editorial: {
-    label: 'Editorial',
-    note: 'asymmetric 12-col · magazine spread',
-    introPlate: true,
-    header: null,
-    layout: {
-      1: { grid: 'lg:col-span-7 lg:row-span-2', aspect: '7 / 8' },
-      2: { grid: 'lg:col-span-7', aspect: '7 / 4' },
-      3: { grid: 'lg:col-span-5', aspect: '5 / 4' },
-      4: { grid: 'lg:col-span-4', aspect: '4 / 5' },
-      5: { grid: 'lg:col-span-5', aspect: '1 / 1' },
-      6: { grid: 'lg:col-span-3', aspect: '3 / 5' },
-      7: { grid: 'lg:col-span-12', aspect: '3 / 1' },
-    },
-  },
-  catalog: {
-    label: 'Catalog',
-    note: 'uniform 3-col · portrait',
-    introPlate: false,
-    header: 'split',
-    layout: Object.fromEntries(
-      plates.map((p) => [p.id, { grid: 'lg:col-span-4', aspect: '4 / 5' }])
-    ),
-  },
-  single: {
-    label: 'Single Lane',
-    note: 'sequential full-width · cinematic',
-    introPlate: false,
-    header: 'centered',
-    layout: Object.fromEntries(
-      plates.map((p) => [p.id, { grid: 'lg:col-span-12', aspect: '16 / 9' }])
-    ),
-  },
-};
-
-// ─── Rhythm toggle (developer panel — fixed top-right) ────────────────
-function RhythmToggle({ current, onChange }) {
-  return (
-    <div
-      className="fixed flex flex-col gap-2"
-      style={{
-        top: 16,
-        right: 16,
-        zIndex: 60,
-        background: theme.sectionBg,
-        border: `1px solid ${theme.hairline}`,
-        padding: '12px 14px',
-        boxShadow: '0 8px 24px rgba(20,18,16,0.06)',
-      }}
-    >
-      <div
-        className="flex items-center gap-2"
-        style={{
-          fontFamily: fontStack.mono,
-          fontSize: 9,
-          color: theme.inkFaint,
-          letterSpacing: '0.18em',
-          textTransform: 'uppercase',
-        }}
-      >
-        <span style={{ width: 14, height: 1, background: theme.hairline }} />
-        <span>Rhythm</span>
-      </div>
-      <div className="flex flex-col gap-1">
-        {Object.entries(rhythmConfigs).map(([key, cfg]) => {
-          const active = current === key;
-          return (
-            <button
-              key={key}
-              onClick={() => onChange(key)}
-              className="flex flex-col items-start text-left transition-all"
-              style={{
-                padding: '6px 10px',
-                background: active ? theme.ink : 'transparent',
-                color: active ? theme.cream : theme.ink,
-                border: `0.5px solid ${active ? theme.ink : theme.hairlineSoft}`,
-                fontFamily: fontStack.mono,
-                fontSize: 11,
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                minWidth: 180,
-              }}
-            >
-              <span style={{ fontWeight: 500 }}>{cfg.label}</span>
-              <span
-                style={{
-                  fontSize: 9,
-                  opacity: active ? 0.6 : 0.5,
-                  letterSpacing: '0.06em',
-                  textTransform: 'none',
-                  marginTop: 2,
-                }}
-              >
-                {cfg.note}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
 // ─── HotSpot (shared) ────────────────────────────────────────────────
 function HotSpot({ x, y, side, product, isHovered, onHover, onLeave, onSelect }) {
   const peekDirection = side === 'right' ? 'left-full ml-3' : 'right-full mr-3';
@@ -305,25 +204,28 @@ function HotSpot({ x, y, side, product, isHovered, onHover, onLeave, onSelect })
         <span
           className="absolute inset-0 rounded-full transition-all duration-300 ease-out"
           style={{
-            border: `1px solid ${theme.creamHairline}`,
-            background: isHovered ? 'rgba(245,244,240,0.16)' : 'rgba(245,244,240,0.08)',
+            border: `1.5px solid rgba(245,244,240,0.7)`,
+            background: isHovered ? 'rgba(245,244,240,0.24)' : 'rgba(245,244,240,0.14)',
             backdropFilter: 'blur(2px)',
+            boxShadow: isHovered
+              ? '0 0 12px rgba(245,244,240,0.18)'
+              : '0 0 6px rgba(245,244,240,0.1)',
           }}
         />
         <span
           className="relative rounded-full"
           style={{
-            width: 4,
-            height: 4,
+            width: 5,
+            height: 5,
             background: theme.cream,
-            boxShadow: '0 0 8px rgba(245,244,240,0.5)',
+            boxShadow: '0 0 12px rgba(245,244,240,0.7)',
           }}
         />
         <span
           className="absolute rounded-full pointer-events-none"
           style={{
-            inset: -6,
-            border: '1px solid rgba(245,244,240,0.18)',
+            inset: -7,
+            border: '1px solid rgba(245,244,240,0.32)',
             opacity: isHovered ? 1 : 0,
             transform: isHovered ? 'scale(1.1)' : 'scale(0.85)',
             transition: 'all 400ms ease-out',
@@ -484,13 +386,12 @@ function IntroPlate() {
       >
         <p
           style={{
-            fontFamily: fontStack.display,
-            fontStyle: 'italic',
+            fontFamily: fontStack.body,
             fontWeight: 400,
-            fontSize: 16,
-            lineHeight: 1.55,
+            fontSize: 14,
+            lineHeight: 1.65,
             color: theme.inkMute,
-            letterSpacing: '0.005em',
+            letterSpacing: '-0.005em',
           }}
         >
           {intro.body}
@@ -518,166 +419,6 @@ function IntroPlate() {
         </a>
       </div>
     </article>
-  );
-}
-
-// ─── Header — Split (Catalog) ────────────────────────────────────────
-function HeaderSplit() {
-  return (
-    <div
-      className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-end"
-      style={{
-        marginTop: 'clamp(32px, 4vw, 56px)',
-        marginBottom: 'clamp(32px, 4vw, 56px)',
-        paddingBottom: 24,
-        borderBottom: `0.5px solid ${theme.hairline}`,
-      }}
-    >
-      <div className="lg:col-span-7 flex flex-col gap-4">
-        <div
-          className="flex items-center gap-3"
-          style={{
-            color: theme.inkFaint,
-            fontFamily: fontStack.mono,
-            fontSize: 10,
-            letterSpacing: '0.16em',
-            textTransform: 'uppercase',
-          }}
-        >
-          <span style={{ width: 24, height: 1, background: theme.hairline }} />
-          <span>The Edit</span>
-        </div>
-        <h2
-          style={{
-            fontFamily: fontStack.display,
-            fontWeight: 400,
-            fontSize: 'clamp(56px, 6vw, 96px)',
-            lineHeight: 0.95,
-            color: theme.ink,
-            letterSpacing: '-0.02em',
-          }}
-        >
-          <span>{intro.line1} </span>
-          <span style={{ fontStyle: 'italic' }}>{intro.line2}</span>
-        </h2>
-      </div>
-      <div
-        className="lg:col-span-5 flex flex-col gap-5 pl-4"
-        style={{ borderLeft: `1px solid ${theme.hairline}`, maxWidth: 420 }}
-      >
-        <p
-          style={{
-            fontFamily: fontStack.display,
-            fontStyle: 'italic',
-            fontWeight: 400,
-            fontSize: 16,
-            lineHeight: 1.55,
-            color: theme.inkMute,
-            letterSpacing: '0.005em',
-          }}
-        >
-          {intro.body}
-        </p>
-        <a
-          href="#"
-          className="group inline-flex items-center gap-2 self-start"
-          style={{
-            fontFamily: fontStack.body,
-            fontSize: 13,
-            fontWeight: 500,
-            color: theme.ink,
-            letterSpacing: '0.02em',
-            paddingBottom: 4,
-            borderBottom: `0.5px solid ${theme.ink}`,
-          }}
-        >
-          <span>{intro.cta}</span>
-          <span
-            className="transition-transform duration-200 ease-out group-hover:translate-x-2"
-            style={{ display: 'inline-block' }}
-          >
-            →
-          </span>
-        </a>
-      </div>
-    </div>
-  );
-}
-
-// ─── Header — Centered (Single Lane) ─────────────────────────────────
-function HeaderCentered() {
-  return (
-    <div
-      className="flex flex-col items-center text-center"
-      style={{
-        marginTop: 'clamp(48px, 6vw, 96px)',
-        marginBottom: 'clamp(48px, 6vw, 96px)',
-        gap: 32,
-      }}
-    >
-      <div
-        className="flex items-center gap-3"
-        style={{
-          color: theme.inkFaint,
-          fontFamily: fontStack.mono,
-          fontSize: 10,
-          letterSpacing: '0.18em',
-          textTransform: 'uppercase',
-        }}
-      >
-        <span style={{ width: 24, height: 1, background: theme.hairline }} />
-        <span>The Edit</span>
-        <span style={{ width: 24, height: 1, background: theme.hairline }} />
-      </div>
-      <h2
-        style={{
-          fontFamily: fontStack.display,
-          fontWeight: 400,
-          fontSize: 'clamp(72px, 9vw, 152px)',
-          lineHeight: 0.92,
-          color: theme.ink,
-          letterSpacing: '-0.025em',
-        }}
-      >
-        <span>{intro.line1} </span>
-        <span style={{ fontStyle: 'italic' }}>{intro.line2}</span>
-      </h2>
-      <p
-        style={{
-          fontFamily: fontStack.display,
-          fontStyle: 'italic',
-          fontWeight: 400,
-          fontSize: 18,
-          lineHeight: 1.6,
-          color: theme.inkMute,
-          letterSpacing: '0.005em',
-          maxWidth: 520,
-        }}
-      >
-        {intro.body}
-      </p>
-      <a
-        href="#"
-        className="group inline-flex items-center gap-2"
-        style={{
-          fontFamily: fontStack.body,
-          fontSize: 13,
-          fontWeight: 500,
-          color: theme.ink,
-          letterSpacing: '0.02em',
-          paddingBottom: 4,
-          borderBottom: `0.5px solid ${theme.ink}`,
-        }}
-      >
-        <span>{intro.cta}</span>
-        <span
-          className="transition-transform duration-200 ease-out group-hover:translate-x-2"
-          style={{ display: 'inline-block' }}
-        >
-          →
-        </span>
-      </a>
-    </div>
   );
 }
 
@@ -929,21 +670,21 @@ function Drawer({ product, onClose }) {
   );
 }
 
+// ─── Editorial layout config (asymmetric 12-col plate map) ────────────
+const editorialLayout = {
+  1: { grid: 'lg:col-span-7 lg:row-span-2', aspect: '7 / 8' },
+  2: { grid: 'lg:col-span-7', aspect: '7 / 4' },
+  3: { grid: 'lg:col-span-5', aspect: '5 / 4' },
+  4: { grid: 'lg:col-span-4', aspect: '4 / 5' },
+  5: { grid: 'lg:col-span-5', aspect: '1 / 1' },
+  6: { grid: 'lg:col-span-3', aspect: '3 / 5' },
+  7: { grid: 'lg:col-span-12', aspect: '3 / 1' },
+};
+
 // ─── Main ────────────────────────────────────────────────────────────
 function LookBook() {
-  const [rhythm, setRhythm] = useState('editorial');
   const [activeProduct, setActiveProduct] = useState(null);
   const [hoveredHotspot, setHoveredHotspot] = useState(null);
-
-  const config = rhythmConfigs[rhythm];
-
-  // Different gap-y per rhythm for visual rhythm
-  const gridGapClass =
-    rhythm === 'single'
-      ? 'gap-x-6 gap-y-16 lg:gap-y-24'
-      : rhythm === 'catalog'
-      ? 'gap-x-6 gap-y-12 lg:gap-y-16'
-      : 'gap-x-6 gap-y-12 lg:gap-y-16';
 
   return (
     <section
@@ -953,8 +694,6 @@ function LookBook() {
         minHeight: '100vh',
       }}
     >
-      <RhythmToggle current={rhythm} onChange={setRhythm} />
-
       <div
         className="mx-auto"
         style={{
@@ -1005,20 +744,14 @@ function LookBook() {
           </span>
         </header>
 
-        {/* Header per rhythm */}
-        {config.header === 'split' && <HeaderSplit />}
-        {config.header === 'centered' && <HeaderCentered />}
-
-        {/* Plate grid */}
+        {/* Plate grid — Editorial asymmetric 12-col */}
         <div
-          className={`grid grid-cols-1 lg:grid-cols-12 ${gridGapClass}`}
-          style={{
-            marginTop: config.header ? 0 : 'clamp(32px, 4vw, 56px)',
-          }}
+          className="grid grid-cols-1 lg:grid-cols-12 gap-x-6 gap-y-12 lg:gap-y-16"
+          style={{ marginTop: 'clamp(32px, 4vw, 56px)' }}
         >
-          {config.introPlate && <IntroPlate />}
+          <IntroPlate />
           {plates.map((plate) => {
-            const layout = config.layout[plate.id];
+            const layout = editorialLayout[plate.id];
             return (
               <Plate
                 key={plate.id}
